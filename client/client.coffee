@@ -29,6 +29,8 @@ Template.leftNav.events =
         term = $(evt.target).val()
         navigate( '/search/' + term ) if term
 
+    'click #usernav a': evtNavigate
+
 getSummaries = (entries) ->
     entries.map (e) ->
         
@@ -71,6 +73,10 @@ Template.leftNav.pageIs = (u) ->
     page = Session.get('title')
     return u == "/" if page == undefined
     return u == page
+
+Template.leftNav.usernav = () ->
+    return Entries.find({ author : Meteor.userId()}).fetch()
+
 
 ## Entry
 
@@ -400,7 +406,7 @@ Meteor.startup(-> Backbone.history.start({pushState: true}))
 ## NAV
 
 Template.sidebar.navItems = ->
-    Session.get('sidebar')
+    Session.get('navItems')
 
 stackTitles = (items, cur, counter) ->
 
