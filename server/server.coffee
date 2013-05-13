@@ -60,7 +60,27 @@ Meteor.methods
 
     updateTitle: (entry, title, callback) ->
         throw new Meteor.Error(403, "You must be logged in") unless this.userId
-        return Entries.update( {_id: entry._id}, {$set: {'title': title}} )
+
+        oldTitle = entry.title
+        oldLink = entryLink( entry )
+
+        Entries.update( {_id: entry._id}, {$set: {'title': title}} )
+        entry.title = title
+        newLink = entryLink( entry )
+
+        reOldLink = escapeRegExp( oldLink )
+        re = new RegExp( "href=['\"]#{reOldLink}['\"]", "g" )
+
+        matches = Entries.find({text: {$regex: re}})
+
+        for entry in matches.fetch()
+            
+            # Todo: locked entries?
+            # Change title text?
+            newText = entry.text.replace( re, "href='#{newLink}'" )
+            Entries.update( {_id: entry._id}, {$set: {text: newText}} )
+
+
 
     # Todo: lock down fields
     saveEntry: (entry, context, callback) ->
