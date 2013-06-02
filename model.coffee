@@ -75,3 +75,37 @@ root.verifySave = ( entry, user, context ) ->
         entry.mode = "public"
 
     entry
+
+
+
+
+
+
+
+Meteor.ManagedUsers =
+    # availablePermissions: ->
+    # # Return an object of key/value pairs, like:  {permissionName: "Permission Description", ....}
+    # # Do this in a file accessible by both the server and client.
+    #     {}
+
+  
+    # Input Validation
+    isAdmin: ->
+        Meteor.user() and (Meteor.user().username is "admin")
+
+    # checkUsername: (username, userId) ->
+    #     throw new Meteor.Error(500, "Username can not be blank.")  unless username
+    #     usernamePattern = /^[a-z]+$/g
+    #     throw new Meteor.Error(500, "Username format is incorrect.")  unless usernamePattern.test(username)
+    #     u = Meteor.users.findOne(username: username)
+    #     throw new Meteor.Error(500, "Username already in use.")  if u and (not userId or (u._id isnt userId))
+
+    # checkEmailAddress: (address, userId) ->
+    # if address
+    #     emailPattern = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i
+    #     throw new Meteor.Error(500, "Email Address format is incorrect.")  unless emailPattern.test(address)
+    #     u = Meteor.users.findOne(emails:
+    #         $elemMatch:
+    #             address: address
+    #     )
+    #     throw new Meteor.Error(500, "Email Address already in use.")  if u and (not userId or (u._id isnt userId))

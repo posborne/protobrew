@@ -92,7 +92,6 @@ Meteor.methods
 
         Meteor.users.update( {_id: this.userId}, {$set: {"username": value}}) if value
 
-
     createNewPage: () ->
         #ownUnnamedPages = Entries.find( { author : this.userId, title : {$regex: /^unnamed-/ }}, {sort: { title: 1 }}).fetch() # .find(query, projection)
         ownUnnamedPages = Entries.find( { context: null, title : {$regex: /^unnamed-/ }}, {sort: { title: 1 }}).fetch() # .find(query, projection)
@@ -147,3 +146,110 @@ Meteor.methods
         );
 
         return {filelink: path + name}
+
+
+
+
+# Do not allow account creation by just anyone
+Accounts.config forbidClientAccountCreation: true
+  
+# Verify that the admin user account exists (should be created on the first run)
+u = Meteor.users.findOne(username: "admin") # find the admin user
+unless u
+    Accounts.createUser
+    username: "admin"
+    password: "abc123"
+    profile:
+        name: "Administrator"
+
+Meteor.publish "systemUsers", ->
+    if @userId
+        Meteor.users.find
+            username:
+                $ne: "admin"
+        ,
+        sort:
+            userId: 1
+
+        fields:
+            username: 1
+            profile: 1
+            emails: 1
+            permissions: 1
+
+
+Meteor.methods
+    removeUser: (userId) ->
+        throw new Meteor.Error(401, "Only admin is allowed to do this.")  unless Meteor.ManagedUsers.isAdmin()
+        throw new Meteor.Error(401, "Admin can not be removed.")  if Meteor.user()._id is userId
+        Meteor.users.remove userId
+        true
+
+    # updateUser: (userId, username, name, address, permissions) ->
+    #     throw new Meteor.Error(401, "Only admin is allowed to do this.")  unless Meteor.ManagedUsers.isAdmin()
+    #     Meteor.ManagedUsers.checkUsername username, userId
+    #     throw new Meteor.Error(500, "Name can not be blank.")  unless name
+    #     Meteor.ManagedUsers.checkEmailAddress address, userId
+    #     if Meteor.user()._id is userId
+    #         username = "admin"
+    #         name = "Administrator"
+    #     Meteor.users.update userId,
+    #         $set:
+    #             username: username
+    #             profile:
+    #                 name: name
+    #             emails: [address: address]
+    #             permissions: permissions
+    #     userId
+
+    # passwordReset: (userId) ->
+    #     throw new Meteor.Error(401, "Only admin is allowed to do this.")  unless Meteor.ManagedUsers.isAdmin()
+    #     try
+    #         Accounts.sendResetPasswordEmail userId
+    #     catch e
+    #         throw new Meteor.Error(500, "Can't send email.")
+    #     userId
+
+    # addUser: (username, name, address, permissions) ->
+    #     throw new Meteor.Error(401, "Only admin is allowed to do this.")  unless Meteor.ManagedUsers.isAdmin()
+    #     Meteor.ManagedUsers.checkUsername username
+    #     throw new Meteor.Error(500, "Name can not be blank.")  unless name
+    #     Meteor.ManagedUsers.checkEmailAddress address
+    #     newUserId = Accounts.createUser(
+    #         username: username
+    #         email: address
+    #         profile:
+    #         name: name
+    #     )
+    #     Accounts.sendEnrollmentEmail newUserId  if address
+    #     Meteor.users.update newUserId,
+    #         $set:
+    #             permissions: permissions
+    #     newUserId
+
+# if Meteor.isClient
+#   Meteor.subscribe "systemUsers"
+  
+#   # Use username or an optional email adddress for login
+#   Accounts.ui.config passwordSignupFields: "USERNAME_AND_OPTIONAL_EMAIL"
+  
+#   # A shared Handlebars helper that returns true when the logged in user is "admin"
+#   Handlebars.registerHelper "isAdmin", ->
+#     Meteor.ManagedUsers.isAdmin()
+
+  
+#   # The current user's full name
+#   Handlebars.registerHelper "profileName", ->
+#     Meteor.user().profile.name  if Meteor.user() and Meteor.user().profile and Meteor.user().profile.name
+
+  
+#   # Pass a user object, and get the email address
+#   Handlebars.registerHelper "emailAddress", (user) ->
+#     user.emails[0].address  if user and user.emails
+
+  
+#   # Pass the permission name (as a string) to this helper
+#   Handlebars.registerHelper "hasPermission", (permission) ->
+#     true  if Meteor.user() and ((Meteor.user().username is "admin") or (Meteor.user().permissions and _.contains(Meteor.user().permissions,
+#       permission: true
+#     )))

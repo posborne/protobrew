@@ -33,6 +33,12 @@
       {{> index}}
       {{/if}}
 
+      {{#if modeIs "users"}}
+        {{> toolbar}}
+        {{> entry}}
+        {{> managedUsers}}
+      {{/if}}
+
       {{#if modeIs "search"}}
       {{> search}}
       {{/if}}
@@ -42,7 +48,8 @@
       {{/if}}
 
       {{#if modeIs "entry"}}
-      {{> entry}}
+            {{> toolbar}}
+            {{> entry}}
       {{/if}}
 
       {{#if modeIs "profile"}}
@@ -98,37 +105,6 @@
 <template name="entry">
 
     <div id="entry">
-
-            
-        {{#if edit_mode}}
-            <div id='edit_mode_toolbar'class="action-toolbar edit_mode">
-                <a class="btn btn-danger" href="#" value="delete" id="delete"><span aria-hidden="true" data-icon="&#x64;"></span></a>
-                <a class="btn btn-warning" href="#" value="cancel" id="cancel"><span aria-hidden="true" data-icon="&#x62;"></span></a>
-                <a class="btn btn-success" href="#" value="save" id="save"><span aria-hidden="true" data-icon="&#x22;"></span> Save</a>
-            </div>
-        {{else}}
-            {{#if entry}}
-                {{#if viewable}}
-
-                    <div id= "user_toolbar" class="action-toolbar">
-                        <a class="btn" href="#" value="new_page" id="new_page">
-                            <span aria-hidden="true" data-icon="&#xe001;"></span> 
-                            New
-                        </a>
-                        <a class="btn" href="#" value="toggle_star" id="toggle_star">
-                            <span aria-hidden="true" data-icon="&#xe004;"></span> 
-                            Star
-                        </a>
-                        {{#if editable}}
-                        <a class="btn" href="#" value="edit" id="edit">
-                            <span aria-hidden="true" data-icon="&#x23;"></span> 
-                            Edit
-                        </a>
-                        {{/if}}
-                    </div>
-                {{/if}}
-            {{/if}}
-        {{/if}}
 
 
         <h1 id="article-title" class="article-title">
@@ -232,7 +208,7 @@
                 </a>
             </li>
 			<li {{#if pageIs "Articles"}}class="selected"{{/if}}><a class="left-nav" href="/Articles"><span aria-hidden="true" data-icon="&#x6e;"></span> Articles</a></li>
-			<li {{#if pageIs "Help"}}class="selected"{{/if}}><a class="left-nav" href="/Help"><span aria-hidden="true" data-icon="&#x6e;"></span> Help</a></li>
+			<li {{#if pageIs "users"}}class="selected"{{/if}}><a class="left-nav" href="/users"><span aria-hidden="true" data-icon="&#x6e;"></span> Users</a></li>
             {{/isolate}}
     	</ul>
     </nav>
@@ -258,14 +234,14 @@
                 <div id="edited" class="tab-pane {{#if isActiveTab 'editedTab'}} active {{/if}}">
                     <ul>
                         {{#each edited}}
-                            <li><a class="left-nav" href="{{entryLink this}}">{{title}}</a></li>
+                            <li><a class="left-nav" href="{{entryLink this}}">{{this.title}}</a></li>
                         {{/each}}
                     </ul>
                 </div> 
             <div id="starred" class="tab-pane {{#if isActiveTab 'starredTab'}} active {{/if}}" >
                     <ul>
                         {{#each starred}}
-                        <li><a class="left-nav" href="{{entryLink this}}">{{title}}</a></li>
+                        <li><a class="left-nav" href="{{entryLink this}}">{{this.title}}</a></li>
                         {{/each}}
                     </ul>
             </div>
@@ -294,7 +270,8 @@
         <div id="sidebar">
             {{> sidebar}}
         </div>
-	<!-- end #sidebar --></div>
+	</div>
+    <!-- end #sidebar -->
   {{/if}}
 </template>
 
@@ -333,3 +310,169 @@
         {{/isolate}}
     </div>
 </template>
+
+
+<template name="toolbar">
+
+        {{#if edit_mode}}
+            <div id='edit_mode_toolbar'class="action-toolbar edit_mode">
+                <a class="btn btn-danger" href="#" value="delete" id="delete"><span aria-hidden="true" data-icon="&#x64;"></span></a>
+                <a class="btn btn-warning" href="#" value="cancel" id="cancel"><span aria-hidden="true" data-icon="&#x62;"></span></a>
+                <a class="btn btn-success" href="#" value="save" id="save"><span aria-hidden="true" data-icon="&#x22;"></span> Save</a>
+            </div>
+        {{else}}
+
+
+                <div id= "user_toolbar" class="action-toolbar">
+                    <a class="btn" href="#" value="new_page" id="new_page">
+                        <span aria-hidden="true" data-icon="&#xe001;"></span> 
+                        New
+                    </a>
+                    <a class="btn" href="#" value="toggle_star" id="toggle_star">
+                        <span aria-hidden="true" data-icon="&#xe004;"></span> 
+                        Star
+                    </a>
+
+                    {{#if editable}}
+                        <a class="btn" href="#" value="edit" id="edit">
+                            <span aria-hidden="true" data-icon="&#x23;"></span> 
+                            Edit
+                        </a>
+                     {{/if}}
+
+                </div>
+
+
+        {{/if}}
+</template>
+
+
+
+
+<template name="managedUsers">
+    <div class="row-fluid">
+        <table class="table table-hover span11">
+            <thead>
+                <tr>
+                    <th class="span3">Username</th>
+                    <th class="span3">Full Name</th>
+                    <th class="span3">Email Address</th>
+                    <th class="span2"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each systemUsers}}
+                    <tr>
+                        <td class="span3">
+                            <span class="username">{{username}}</span>
+                        </td>
+                        <td class="span3">
+                            <span class="fullName">{{profile.name}}</span>
+                        </td>
+                        <td class="span3">
+                            <span class="emailAddress">
+                                {{emailAddress this}}
+                            </span>
+                        </td>
+                        <td class="span2">
+                            <i class="icon-edit editUser" data-toggle="modal" data-target="#{{_id}}_edit"></i>
+                            <i class="icon-remove remove-user"></i>
+                            <!-- template managedUserEditModal -->
+                        </td>
+                    </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    <div class="row-fluid">
+        <hr/>
+    </div>
+<!--     <div class="row-fluid">
+        <form id="newUser" class="well form-horizontal span6">
+            <legend>New User</legend>
+            {{#isolate}}
+                {{#if newManagedUserError}}
+                    <div class="row-fluid span11 alert alert-error">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <h4>Error</h4>
+                        {{newManagedUserError}}
+                    </div>
+                {{/if}}
+            {{/isolate}}
+            template managedUserForm
+            <div class="control-group">
+                <div class="controls">
+                    <button id="submit" type="button" class="btn btn-primary">Save changes</button>
+                    <button id="cancel" type="button" class="btn">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div> -->
+</template>
+
+<!-- <template name="managedUserEditModal">
+    <div id="{{_id}}_edit" class="modal hide fade editModal" role="dialog" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3>Edit User</h3>
+        </div>
+        <div class="modal-body">
+            <form class="well form-horizontal">
+                {{#isolate}}
+                    {{#if editManagedUserError}}
+                        <div class="row-fluid span11 alert alert-error">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <h4>Error</h4>
+                            {{editManagedUserError}}
+                        </div>
+                    {{/if}}
+                {{/isolate}}
+                template managedUserForm
+            </form>
+            <div class="row-fluid">
+                <span class="span12 text-right">
+                    <button class="btn passwordReset">Send Password Reset Email</button>
+                </span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            <button class="btn btn-primary editSave">Save changes</button>
+        </div>
+    </div>
+</template> -->
+
+<!-- <template name="managedUserForm">
+    <fieldset>
+        <div class="control-group">
+            <label class="control-label" for="username">Username</label>
+            <div class="controls">
+                <input class="username" type="text"/>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="name">Full Name</label>
+            <div class="controls">
+                <input class="name" type="text"/>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="email">Email</label>
+            <div class="controls">
+                <input class="email" type="text"/>
+            </div>
+        </div>
+        {{#if permissions}}
+            <div class="control-group">
+                <label class="control-label">Permissions</label>
+                <div class="controls permissions">
+                    {{#each permissions}}
+                        <label class="checkbox">
+                            <input class="{{name}} permission" type="checkbox">{{description}}
+                        </label>
+                    {{/each}}
+                </div>
+            </div>
+        {{/if}}
+    </fieldset>
+</template> -->

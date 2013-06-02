@@ -90,7 +90,7 @@ Template.leftNav.events =
 
     'click #userTabs > li' : (evt) ->
         $el = $(evt.currentTarget)
-        Session.set( 'activeTab' , $el.attr('id'))
+        Session.set('activeTab' , $el.attr('id'))
 
 getSummaries = (entries) ->
     entries.map (e) ->
@@ -167,51 +167,8 @@ Handlebars.registerHelper( 'entryLink', (entry) ->
     entryLink( entry )
 )
 
-## Entry
-
-Template.entry.title = ->
-    Session.get("title")
-
-Template.entry.entryLoaded = ->
-    Session.get("entryLoaded")
-
-Template.entry.userContext = ->
-    Session.get("context")
-
-Template.entry.editable = ->
-    entry = Session.get('entry')
-    context = Session.get("context")
-    user  = Meteor.user()
-    editable( entry, user, context )
-
-Template.entry.locked = ->
-    entry = Session.get('entry')
-    return entry && entry.editing
-
-Template.entry.isStarred = ->
-    user  = Meteor.user()
-    starredPages = user.profile.starredPages
-    entryId = Session.get('entryId')
-    if entryId in starredPages
-        return  true
-
-
-Template.entry.adminable = ->
-    context = Session.get("context")
-    user  = Meteor.user()
-    adminable( user, context )
-
-Template.entry.viewable = ->
-    entry = Session.get('entry')
-    context = Session.get("context")
-    user  = Meteor.user()
-    viewable( entry, user, context )
-
 Template.entry.modeIs = (v) ->
     return v == Session.get('entry').mode
-
-Template.entry.entryLoaded = ->
-    Session.get('entryLoaded')
 
 Template.entry.entry = ->
 
@@ -239,13 +196,13 @@ Template.entry.entry = ->
             entry.text = source.html()
             entry
         else
-            Session.set( 'entry', {} )
-            Session.set( 'entryId', null )
+            Session.set('entry', {} )
+            Session.set('entryId', null )
             Session.get('entryLoaded')
 
 
-Template.entry.edit_mode = ->
-    Session.get('editMode')
+# Template.entry.edit_mode = ->
+#     Session.get('editMode')
 
 
 Template.main.events
@@ -367,10 +324,10 @@ saveEntry = (evt) ->
 
     Meteor.call('saveEntry', entry, context, reroute)
     Entries.update({_id: entry._id}, entry)
-    Session.set("editMode", false)
+    Session.set('editMode', false)
 
 
-Template.entry.events
+Template.toolbar.events
 
     'click #new_page': (evt) ->
         evt.preventDefault()
@@ -398,17 +355,8 @@ Template.entry.events
                 $push: {'profile.starredPages': entryId}
             })
 
-    'click li.article-tag a': (evt) ->
-        evt.preventDefault()
-        tag = $(evt.target).text()
-        navigate( '/tag/' + tag ) if tag
-
-    'click a.entry-link': (e) ->
-        evtNavigate(e) unless Session.get('editMode')
-
-
     'click #edit': (evt) ->
-        Session.set( 'y-offset', window.pageYOffset )
+        Session.set('y-offset', window.pageYOffset )
         evt.preventDefault()
         lockEntry()
         Session.set('editMode', true)
@@ -421,11 +369,24 @@ Template.entry.events
     'click #cancel': (evt) ->
         evt.preventDefault()
         unlockEntry()
-        Session.set("editMode", false)
+        Session.set('editMode', false)
 
     'click #delete': (evt) ->
         evt.preventDefault()
         deleteEntry(evt)
+
+
+Template.entry.events
+
+
+    'click li.article-tag a': (evt) ->
+        evt.preventDefault()
+        tag = $(evt.target).text()
+        navigate( '/tag/' + tag ) if tag
+
+    'click a.entry-link': (e) ->
+        evtNavigate(e) unless Session.get('editMode')
+
 
     'click #article-title': (evt) ->
 
@@ -462,6 +423,7 @@ Template.entry.events
             cancel(e, true) if e.keyCode == 27
         )
 
+
 Template.profile.user = ->
     Meteor.user()
 
@@ -493,35 +455,40 @@ EntryRouter = Backbone.Router.extend({
         "tag/:tag": "tag",
         "profile": "profile",
         "images": "images",
+        "users": "users",
         "u/:user/:title": "userSpace",
         ":title": "main",
         "": "index"
     },
     index: ->
         unlockEntry()
-        Session.set("mode", 'index')
-        Session.set("title", undefined)
+        Session.set('mode', 'index')
+        Session.set('title', undefined)
     profile: (term) ->
         unlockEntry()
-        Session.set( 'mode', 'profile' )
+        Session.set('mode', 'profile' )
+    users: (title)->
+        unlockEntry()
+        Session.set('mode', 'users' )
+        Session.set('title', 'users')
     search: (term) ->
         unlockEntry()
-        Session.set( 'mode', 'search' )
-        Session.set( 'search-term', decodeURIComponent( term ) )
+        Session.set('mode', 'search' )
+        Session.set('search-term', decodeURIComponent( term ) )
     tag: (tag) ->
         unlockEntry()
-        Session.set( 'mode', 'tag' )
-        Session.set( 'tag', decodeURIComponent( tag ) )
+        Session.set('mode', 'tag' )
+        Session.set('tag', decodeURIComponent( tag ) )
     userSpace: (username, title) ->
         unlockEntry()
-        Session.set("mode", 'entry')
-        Session.set("context", username)
-        Session.set("title", decodeURIComponent( title ))
+        Session.set('mode', 'entry')
+        Session.set('context', username)
+        Session.set('title', decodeURIComponent( title ))
     main: (title) ->
         unlockEntry()
-        Session.set("mode", 'entry')
-        Session.set("context", null)
-        Session.set("title", decodeURIComponent( title ))
+        Session.set('mode', 'entry')
+        Session.set('context', null)
+        Session.set('title', decodeURIComponent( title ))
     setTitle: (title) ->
         this.navigate(title, true)
 })
@@ -710,3 +677,216 @@ Meteor.saveFile = (blob, name, path, type, callback) ->
               #   $(this).trigger "setSuggestions",
               #       result: textext.itemManager().filter(list, query)
 
+
+
+## George's globals
+
+# edit_mode global helper
+Handlebars.registerHelper "edit_mode", ->
+    Session.get('editMode')
+
+Handlebars.registerHelper "editable", ->
+    entry = Session.get('entry')
+    context = Session.get("context")
+    user  = Meteor.user()
+    editable( entry, user, context )
+
+
+
+## Entry
+
+Handlebars.registerHelper "title",->
+    Session.get("title")
+
+
+Handlebars.registerHelper "userContext", ->
+    Session.get("context")
+
+
+Handlebars.registerHelper "locked", ->
+    entry = Session.get('entry')
+    return entry && entry.editing
+
+Handlebars.registerHelper "isStarred", ->
+    user  = Meteor.user()
+    starredPages = user.profile.starredPages
+    entryId = Session.get('entryId')
+    if entryId in starredPages
+        return  true
+
+
+Handlebars.registerHelper "adminable", ->
+    context = Session.get("context")
+    user  = Meteor.user()
+    adminable( user, context )
+
+Handlebars.registerHelper "viewable", ->
+    entry = Session.get('entry')
+    context = Session.get("context")
+    user  = Meteor.user()
+    viewable( entry, user, context )
+
+
+Handlebars.registerHelper "entryLoaded", ->
+    Session.get('entryLoaded')
+
+
+
+Handlebars.registerHelper "debug", (optionalValue) ->
+  console.log "Current Context"
+  console.log "===================="
+  console.log this
+  if optionalValue
+    console.log "Value"
+    console.log "===================="
+    console.log this.title
+
+
+
+
+
+
+
+
+Meteor.subscribe "systemUsers"
+
+# Use username or an optional email adddress for login
+Accounts.ui.config passwordSignupFields: "USERNAME_AND_OPTIONAL_EMAIL"
+
+# A shared Handlebars helper that returns true when the logged in user is "admin"
+Handlebars.registerHelper "isAdmin", ->
+  Meteor.ManagedUsers.isAdmin()
+
+
+# The current user's full name
+Handlebars.registerHelper "profileName", ->
+  Meteor.user().profile.name  if Meteor.user() and Meteor.user().profile and Meteor.user().profile.name
+
+
+# Pass a user object, and get the email address
+Handlebars.registerHelper "emailAddress", (user) ->
+  user.emails[0].address  if user and user.emails
+
+
+# Pass the permission name (as a string) to this helper
+Handlebars.registerHelper "hasPermission", (permission) ->
+  true  if Meteor.user() and ((Meteor.user().username is "admin") or (Meteor.user().permissions and _.contains(Meteor.user().permissions,
+    permission: true
+  )))
+
+
+
+
+
+
+Template.managedUsers.helpers
+    systemUsers: ->
+        Meteor.users.find {},
+            sort:
+                username: 1
+
+
+    managedUserError: ->
+        Session.get "managedUserError"
+
+    newManagedUserError: ->
+        Session.get "newManagedUserError"
+
+Template.managedUsers.clearForm = ->
+    $(".username").val ""
+    $(".name").val ""
+    $(".email").val ""
+    $(".permission").prop "checked", false
+
+Template.managedUsers.events
+    "click .remove-user": ->
+        self = this
+        bootbox.userId = self._id
+        bootbox.confirm "Are you sure?", (confirmed) ->
+            if confirmed
+                Meteor.call "removeUser", bootbox.userId, (error, result) ->
+                    if error
+                        Session.set "managedUserError", error.reason
+                        Meteor.setTimeout (->
+                            Session.set "managedUserError", null
+                        ), 3000
+                    Session.set "managedUserError", null  if result
+
+
+
+    "click .editUser": ->
+        self = this
+        $("#" + self._id + "_edit .username").val self.username
+        $("#" + self._id + "_edit .name").val self.profile.name
+        $("#" + self._id + "_edit .email").val self.emails[0].address
+        if self.permissions
+            _.keys(self.permissions).forEach (k) ->
+                $("#" + self._id + "_edit .permissions ." + k).prop "checked", self.permissions[k]
+
+
+    "click .editSave": ->
+        self = this
+        permissions = {}
+        _.keys(Meteor.ManagedUsers.availablePermissions()).forEach (k) ->
+            permissions[k] = $("#" + self._id + "_edit .permissions ." + k).prop("checked")
+    
+        Meteor.call "updateUser", self._id, $("#" + self._id + "_edit .username").val(), $("#" + self._id + "_edit .name").val(), $("#" + self._id + "_edit .email").val(), permissions, (error, result) ->
+            if error
+                Session.set "editManagedUserError", error.reason
+                Meteor.setTimeout (->
+                    Session.set "editManagedUserError", null
+                ), 3000
+            if result
+                Session.set "editManagedUserError", null
+                $("#" + result + "_edit").modal "hide"
+
+
+    "click .passwordReset": ->
+        self = this
+        Meteor.call "passwordReset", self._id, (error, result) ->
+            if error
+                Session.set "editManagedUserError", error.reason
+                Meteor.setTimeout (->
+                    Session.set "editManagedUserError", null
+                ), 3000
+            if result
+                Session.set "editManagedUserError", null
+                $("#" + result + "_edit").modal "hide"
+
+
+    "click #submit": ->
+        self = this
+        permissions = {}
+        _.keys(Meteor.ManagedUsers.availablePermissions()).forEach (k) ->
+            permissions[k] = $("#newUser .permissions ." + k).prop("checked")
+    
+        Meteor.call "addUser", $("#newUser .username").val(), $("#newUser .name").val(), $("#newUser .email").val(), permissions, (error, result) ->
+            if error
+                Session.set "newManagedUserError", error.reason
+                Meteor.setTimeout (->
+                    Session.set "newManagedUserError", null
+                ), 3000
+            if result
+                Session.set "newManagedUserError", null
+                Template.managedUsers.clearForm()
+    
+    
+    "click #cancel": ->
+        Template.managedUsers.clearForm()
+
+
+# managedUserForm
+Template.managedUserForm.permissions = ->
+  permissions = new Array()
+  _.keys(Meteor.ManagedUsers.availablePermissions()).forEach (k) ->
+    permissions.push
+      name: k
+      description: Meteor.ManagedUsers.availablePermissions()[k]
+
+
+  permissions
+
+
+# managedUserEditModal
+# Template.managedUserEditModal.helpers editManagedUserError: ->
+#   Session.get "editManagedUserError"
