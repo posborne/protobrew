@@ -3,6 +3,7 @@
     "require": {},
     "toastjs": {},
     "select2": {},
-    "typeahead-js": {}
+    "typeahead-js": {},
+    "bootstrap-3": {}
   }
 }

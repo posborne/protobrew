@@ -11,8 +11,8 @@ coffeescript
 accounts-ui
 accounts-google
 less
-bootstrap
 toastjs
 select2
 standard-app-packages
 require
+bootstrap-3
